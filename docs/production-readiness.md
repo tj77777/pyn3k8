@@ -18,25 +18,137 @@ Kubernetes Secrets are only base64-encoded, not encrypted. For real production:
 
 ## 2. How would you implement CI/CD for this system?
 
-### CI/CD pipeline design (GitHub Actions)
+> **Best Practice:** Separate CI and CD into two independent systems.  
+> **Jenkins** handles Continuous Integration (build, test, push images).  
+> **ArgoCD** handles Continuous Deployment (pull changes from Git, deploy to cluster).  
+> This separation follows the **GitOps** model — Git is the single source of truth for both application code and deployment manifests.
 
-**When a Pull Request is opened:**
+---
+
+### Part 1 — Continuous Integration (Jenkins)
+
+Jenkins is responsible for building, testing, and pushing Docker images to the container registry.
+
+**Pipeline triggers:**
+- On **Pull Request** → run lint, test, build, and scan stages (no push).
+- On **merge to main** → run full pipeline including image push to registry.
 
 ```
-1. Lint     → helm lint, flake8/ruff on Python code
-2. Test     → pytest for each service
-3. Build    → docker build (don't push yet)
-4. Scan     → Trivy scans images for vulnerabilities
+┌─────────────────────────────────────────────────────┐
+│                  Jenkins CI Pipeline                │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  1. Lint     → helm lint, flake8/ruff on Python     │
+│  2. Test     → pytest for each service              │
+│  3. Build    → docker build for all 3 services      │
+│  4. Scan     → Trivy scans images for CVEs          │
+│  5. Push     → Tag image with Git SHA,              │
+│               push to container registry            │
+│               (ECR / ACR / Docker Hub)              │
+│                                                     │
+└──────────────────────┬──────────────────────────────┘
+                       │
+                       ▼
+            Container Registry (ECR/ACR)
+              - api-service:abc1234
+              - worker-service:abc1234
+              - frontend:abc1234
 ```
 
-**When merged to main:**
+**Key points:**
+- Images are tagged with the **Git commit SHA** for full traceability.
+- Jenkins **only builds and pushes** — it never directly touches the Kubernetes cluster.
+- Failed Trivy scans (critical CVEs) **block the pipeline** and prevent the image from being pushed.
+
+---
+
+### Part 2 — Continuous Deployment (ArgoCD)
+
+ArgoCD is a **GitOps-based** continuous deployment tool. It continuously watches a **separate Git repository** (the manifest repo) and ensures the Kubernetes cluster always matches what's in Git.
+
+> **Key idea:** ArgoCD follows a **pull-based model** — it pulls changes from Git, unlike Jenkins which pushes. ArgoCD never receives commands from Jenkins directly.
+
+---
+
+**How it works — 3 simple steps:**
 
 ```
-5. Push     → Tag image with Git SHA, push to container registry
-6. Staging  → helm upgrade --install to staging cluster
-7. Smoke    → Run health check tests against staging
-8. Prod     → Manual approval, then helm upgrade with values-prod.yaml
+  Step 1                    Step 2                     Step 3
+  ──────                    ──────                     ──────
+
+  Jenkins pushes            Ops team updates           ArgoCD pulls
+  image to registry         manifest YAML              & deploys
+                            in Git repo
+
+  ┌──────────┐          ┌────────────────┐          ┌──────────┐
+  │ Container│          │  Manifest Git  │          │  K8s     │
+  │ Registry │          │  Repository    │          │  Cluster │
+  │          │          │                │          │          │
+  │ image:   │          │ values.yaml:   │  ──────► │ Pods     │
+  │ abc1234  │          │  tag: abc1234  │  ArgoCD  │ running  │
+  │          │          │                │  syncs   │ abc1234  │
+  └──────────┘          └────────────────┘          └──────────┘
+       ▲                        ▲
+       │                        │
+    Jenkins                  Ops team
+    (CI done)             (updates tag)
 ```
+
+---
+
+**Step-by-step breakdown:**
+
+| Step | Who does it | What happens |
+|------|-------------|--------------|
+| **1** | **Jenkins** | CI is done — image `api-service:abc1234` is now in the container registry |
+| **2** | **Ops/Dev team** | Updates `values.yaml` in the **manifest Git repo** with the new image tag (`abc1234`) and pushes the commit |
+| **3** | **ArgoCD** | Detects the new commit in the manifest repo (via polling every 3 min or a Git webhook) |
+| **4** | **ArgoCD** | Compares the desired state (Git) with the live state (cluster) — finds a difference |
+| **5** | **ArgoCD** | Pulls the updated manifests and applies them to the cluster (`kubectl apply` under the hood) |
+| **6** | **ArgoCD** | Waits for pods to pass health/readiness checks — confirms deployment is healthy |
+
+---
+
+**Two environments, two sync policies:**
+
+| Environment | Sync Policy | What happens |
+|-------------|-------------|--------------|
+| **Staging** | Auto-sync ON | ArgoCD deploys **immediately** when the manifest repo changes |
+| **Production** | Manual sync | ArgoCD shows the diff and **waits for approval** before deploying |
+
+---
+
+**Rollback is simple:**
+
+```
+Something broke in production?
+
+  1. git revert <bad-commit>    ← revert the manifest change in Git
+  2. git push                   ← push to manifest repo
+  3. ArgoCD auto-syncs          ← cluster returns to previous working state
+
+No kubectl commands needed. No direct cluster access required.
+```
+
+---
+
+**ArgoCD also provides:**
+- **Drift detection** — alerts if someone manually changes the cluster outside of Git (e.g., `kubectl edit`)
+- **Health dashboard** — visual UI showing sync status of every application
+- **History** — full record of every deployment with the exact Git commit that triggered it
+
+---
+
+### Why separate Jenkins (CI) and ArgoCD (CD)?
+
+| Benefit | Explanation |
+|---------|-------------|
+| **Separation of concerns** | Jenkins: code → image. ArgoCD: manifest → cluster. Each does one job well |
+| **Security** | Jenkins has **no cluster credentials**. ArgoCD has **no source code access**. Minimal permissions for each |
+| **Auditability** | Every deployment = a Git commit in the manifest repo. Full history of what, when, and who |
+| **Easy rollback** | Just `git revert` in the manifest repo — ArgoCD auto-deploys the previous state |
+| **Multi-cluster** | ArgoCD can deploy to staging + production from the same manifest repo |
+| **No manual kubectl** | Nobody runs `kubectl apply` manually — Git is the only way to change the cluster |
 
 ---
 
