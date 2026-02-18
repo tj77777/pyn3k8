@@ -83,7 +83,7 @@ No kubectl commands needed. No direct cluster access required.
 | What | How | File |
 |------|-----|------|
 | Minimal base image | `python:3.12-slim` (not full `python:3.12`) | All 3 Dockerfiles |
-| Multi-stage builds | Dependencies installed in builder stage, only runtime copied to final image | All 3 Dockerfiles |
+| Multi stage builds | Dependencies installed in builder stage, only runtime copied to final image | All 3 Dockerfiles |
 | Pinned versions | `Flask==3.1.0`, `gunicorn==23.0.0`, `requests==2.32.3` | `requirements.txt` |
 | `.dockerignore` | Excludes `.git`, `__pycache__`, `Dockerfile`, `.env` from image | All 3 services |
 | Non-root user | `USER 1000:1000` in Dockerfile + `runAsNonRoot: true` in K8s | Dockerfiles + deployments |
