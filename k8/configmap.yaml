@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: pyn3k8
+data:
+  LOG_LEVEL: "INFO"
+  WORKER_URL: "http://worker-service:9090"
+  API_URL: "http://api-service:8080"
