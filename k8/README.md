@@ -61,7 +61,6 @@ securityContext:
 
 **Read only rootfs workaround:** An `emptyDir` volume is mounted at `/tmp` so the app can write temp files without making the root filesystem writable.
 
-**Bonus:** `automountServiceAccountToken: false` — prevents the Kubernetes service account token from being mounted inside the pod, reducing attack surface.
 
 ---
 
