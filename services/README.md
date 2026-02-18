@@ -1,4 +1,4 @@
-# Services Container Security Decisions
+# Services Build Container Security Decisions
 
 This document summarizes the security decisions used to build and run the Docker images for:
 
@@ -6,16 +6,16 @@ This document summarizes the security decisions used to build and run the Docker
 - `services/api`
 - `services/worker`
 
-## 1) Use Multi-Stage Builds
+## 1) Use Multi Stage Builds
 
-All service Dockerfiles use a two-stage build:
+All service Dockerfiles use a two stage build:
 
 - **Builder stage** installs dependencies from `requirements.txt` into `/install`.
 - **Runtime stage** starts fresh and copies only what is required to run.
 
 Why this is used:
 
-- Keeps build-time tooling out of production images.
+- Keeps build time tooling out of production images.
 - Reduces runtime attack surface.
 - Improves image hygiene and maintainability.
 
@@ -29,9 +29,9 @@ Why this is used:
 - Fewer OS packages and binaries available to attackers.
 - Faster pulls and deployments.
 
-## 3) Run as Non-Root
+## 3) Run as Non Root
 
-Each Dockerfile creates and uses a non-root account:
+Each Dockerfile creates and uses a non root account:
 
 - `appuser` / `appgroup`
 - `UID:GID 1000:1000`
@@ -87,16 +87,16 @@ Why this is used:
 
 - Reproducible and deterministic builds.
 - Lower risk from unexpected breaking updates.
-- Better supply-chain control and auditability.
+- Better supply chain control and auditability.
 
 ## 8) Follow Container Hardening Best Practices
 
 The images and runtime settings follow practical hardening patterns:
 
-- Run as non-root user
+- Run as non root user
 - Minimal base image
 - No embedded secrets
-- Multi-stage build separation
+- Multi stage build separation
 - Structured logs to stdout/stderr for centralized monitoring
 - Health endpoints (`/healthz`, `/readyz`) to support safe orchestration behavior
 
@@ -112,9 +112,8 @@ Additional Kubernetes hardening in this project includes:
 
 Service folders are intentionally separated:
 
-- `services/ui`: external-facing web UI logic only
+- `services/ui`: external facing web UI logic only
 - `services/api`: internal API and orchestration logic
 - `services/worker`: internal processing logic
 
 This separation supports least privilege and clearer network/security boundaries when deployed on Kubernetes.
-
