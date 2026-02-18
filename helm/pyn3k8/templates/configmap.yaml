@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "pyn3k8.labels" . | nindent 4 }}
+data:
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  WORKER_URL: "http://worker-service:{{ .Values.worker.port }}"
+  API_URL: "http://api-service:{{ .Values.api.port }}"

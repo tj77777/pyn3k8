@@ -1,0 +1,79 @@
+==================================================
+  pyn3k8 Microservices Application
+  Chart Version: {{ .Chart.Version }}
+  App Version:   {{ .Chart.AppVersion }}
+==================================================
+
+Thank you for installing {{ .Chart.Name }}!
+
+Your release name is: {{ .Release.Name }}
+Your namespace is:    {{ .Values.namespace }}
+
+--------------------------------------------------
+  ACCESSING THE UI IN MINIKUBE
+--------------------------------------------------
+
+Option A: Via Ingress (recommended)
+
+  1. Ensure Minikube addons are enabled:
+
+     $ minikube addons enable ingress
+     $ minikube addons enable metrics-server
+
+  2. Get the Minikube IP:
+
+     $ minikube ip
+
+  3. Add the hostname to /etc/hosts:
+
+     $ echo "$(minikube ip) {{ .Values.ingress.host }}" | sudo tee -a /etc/hosts
+
+  4. Open in your browser:
+
+     http://{{ .Values.ingress.host }}/
+
+Option B: Via port-forward (quick access, no Ingress needed)
+
+  $ kubectl port-forward -n {{ .Values.namespace }} svc/ui-service {{ .Values.ui.port }}:{{ .Values.ui.port }}
+
+  Then visit: http://localhost:{{ .Values.ui.port }}/
+
+Option C: Via Minikube service tunnel
+
+  $ minikube service ui-service -n {{ .Values.namespace }}
+
+--------------------------------------------------
+  VERIFY DEPLOYMENT
+--------------------------------------------------
+
+  Check all resources:
+  $ kubectl get pods,svc,ingress,netpol,hpa,pdb -n {{ .Values.namespace }}
+
+  Check pod logs:
+  $ kubectl logs -n {{ .Values.namespace }} -l app=ui
+  $ kubectl logs -n {{ .Values.namespace }} -l app=api
+  $ kubectl logs -n {{ .Values.namespace }} -l app=worker
+
+  Test health endpoints:
+  $ kubectl exec -n {{ .Values.namespace }} deploy/ui -- wget -qO- http://localhost:{{ .Values.ui.port }}/healthz
+  $ kubectl exec -n {{ .Values.namespace }} deploy/api -- wget -qO- http://localhost:{{ .Values.api.port }}/healthz
+
+--------------------------------------------------
+  UPGRADE / ROLLBACK
+--------------------------------------------------
+
+  Upgrade with production values:
+  $ helm upgrade {{ .Release.Name }} helm/pyn3k8/ -n {{ .Values.namespace }} -f helm/pyn3k8/values-prod.yaml
+
+  List release history:
+  $ helm history {{ .Release.Name }} -n {{ .Values.namespace }}
+
+  Rollback to previous revision:
+  $ helm rollback {{ .Release.Name }} <REVISION> -n {{ .Values.namespace }}
+
+--------------------------------------------------
+  UNINSTALL
+--------------------------------------------------
+
+  $ helm uninstall {{ .Release.Name }} -n {{ .Values.namespace }}
+  $ kubectl delete namespace {{ .Values.namespace }}
