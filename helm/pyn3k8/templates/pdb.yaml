@@ -1,0 +1,47 @@
+{{- if .Values.ui.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ui-pdb
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: ui
+    {{- include "pyn3k8.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.ui.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: ui
+{{- end }}
+{{- if .Values.api.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-pdb
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: api
+    {{- include "pyn3k8.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.api.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: api
+{{- end }}
+{{- if .Values.worker.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: worker-pdb
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: worker
+    {{- include "pyn3k8.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.worker.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: worker
+{{- end }}

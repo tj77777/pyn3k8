@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: worker-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: worker
+    {{- include "pyn3k8.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: worker
+  ports:
+    - port: {{ .Values.worker.port }}
+      targetPort: {{ .Values.worker.port }}
+      protocol: TCP

@@ -1,0 +1,89 @@
+namespace: pyn3k8
+
+global:
+  imagePullPolicy: IfNotPresent
+
+ui:
+  replicaCount: 1
+  image:
+    repository: pyn3k8-ui
+    tag: latest
+  port: 5000
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+api:
+  replicaCount: 2
+  image:
+    repository: pyn3k8-api
+    tag: latest
+  port: 8080
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilization: 70
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+worker:
+  replicaCount: 2
+  image:
+    repository: pyn3k8-worker
+    tag: latest
+  port: 9090
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+ingress:
+  enabled: true
+  className: nginx
+  host: pyn3k8.local
+
+networkPolicies:
+  enabled: true
+
+config:
+  logLevel: "INFO"
+
+secrets:
+  secretKey: "dev-secret-key"
