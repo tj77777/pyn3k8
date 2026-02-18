@@ -35,18 +35,13 @@ Jenkins is responsible for building, testing, and pushing Docker images to the c
   4. Scan     → Trivy scans images for CVEs          
   5. Push     → Tag image with Git SHA,              
                push to container registry            
-               (ECR / ACR / Docker Hub)              
-                                                    
-**Key points:**
-- Images are tagged with the **Git commit SHA** for full traceability.
-- Jenkins **only builds and pushes** — it never directly touches the Kubernetes cluster.
-- Failed Trivy scans (critical CVEs) **block the pipeline** and prevent the image from being pushed.
+               (ECR / ACR / Docker Hub)                                                                 
 
 ---
 
 ### Part 2 — Continuous Deployment (ArgoCD)
 
-ArgoCD is a **GitOps-based** continuous deployment tool. It continuously watches a **separate Git repository** (the manifest repo) and ensures the Kubernetes cluster always matches what's in Git.
+ArgoCD is a **GitOps based** continuous deployment tool. It continuously watches a **separate Git repository** (the manifest repo) and ensures the Kubernetes cluster always matches what's in Git.
 
 > **Key idea:** ArgoCD follows a **pull-based model** — it pulls changes from Git, unlike Jenkins which pushes. ArgoCD never receives commands from Jenkins directly.
 
@@ -111,13 +106,13 @@ No kubectl commands needed. No direct cluster access required.
 
 ## 5. What monitoring stack would you recommend and why?
 
-| Component | What it does | How it helps |
-|-----------|-------------|-------------|
-| **Prometheus** | Collects metrics from the cluster every few seconds | "How much CPU/memory is each pod using?" |
-| **Grafana** | Shows metrics as graphs and dashboards | Visual overview of cluster health |
-| **Alertmanager** | Sends alerts when things go wrong | "API pod restarted 5 times" → Slack notification |
-| **cAdvisor** | Built into every K8s node, tracks container resources | Zero setup — it's already there |
-| **kube-state-metrics** | Tracks pod state (running, pending, failed, restarts) | "How many replicas are available right now?" |
+| Component | What it does 
+|-----------|-------------|
+| **Prometheus** | Collects metrics from the cluster every few seconds | 
+| **Grafana** | Shows metrics as graphs and dashboards |
+| **Alertmanager** | Sends alerts when things go wrong | 
+| **cAdvisor** | Built into every K8s node, tracks container resources |
+| **kube-state-metrics** | Tracks pod state (running, pending, failed, restarts) |
 
 ---
 
