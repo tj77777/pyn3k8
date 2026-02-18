@@ -138,7 +138,7 @@ No kubectl commands needed. No direct cluster access required.
 |------|-------------|
 | **etcd snapshots** | Daily backups of the K8s control plane datastore |
 | **Infrastructure as Code** | Cluster defined in Terraform  |
-| **Multi-region** | Run in 2+ regions with failover — |
+| **Multi-region** | Run in 2+ regions with failover |
 
 
 **Key rule:** Test  disaster recovery regularly.
