@@ -212,23 +212,7 @@ Expected output:
 
 ## Step 10: Access the UI
 
-### Option A -- Via Ingress (recommended)
-
-On macOS with Docker driver, use `minikube tunnel`:
-
-```bash
-# In a separate terminal
-minikube tunnel
-```
-
-Then add the hosts entry:
-```bash
-echo "127.0.0.1 pyn3k8.local" | sudo tee -a /etc/hosts
-```
-
-Open http://pyn3k8.local/ in your browser.
-
-### Option B -- Via Port Forward
+Via Port Forward
 
 ```bash
 kubectl port-forward -n pyn3k8 svc/ui-service 5000:5000
