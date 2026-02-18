@@ -1,4 +1,4 @@
-# pyn3k8 Helm Chart
+# Part C – Helm Chart
 
 Helm chart for deploying the pyn3k8 microservices application (UI, API, Worker) on Kubernetes.
 
@@ -133,7 +133,7 @@ kubectl get pods -n pyn3k8
 ### 4. Rollback tips
 
 - Helm keeps release history (default 10 revisions).
-- Rollback re-deploys the exact manifest state from that revision.
+- Rollback re deploys the exact manifest state from that revision.
 - Pods will perform a rolling update to the previous image/config.
 - Always verify pod health after rollback:
 
@@ -174,50 +174,10 @@ minikube service ui-service -n pyn3k8
 | `values.yaml` | Dev defaults (low replicas, low resources, `latest` tags) |
 | `values-prod.yaml` | Production overrides (higher replicas, more resources, stricter log level) |
 
-### Key configurable values
-
-| Value | Default | Description |
-|-------|---------|-------------|
-| `namespace` | `pyn3k8` | Kubernetes namespace |
-| `ui.replicaCount` | `1` | UI pod replicas |
-| `api.replicaCount` | `2` | API pod replicas |
-| `worker.replicaCount` | `2` | Worker pod replicas |
-| `ingress.enabled` | `true` | Enable Ingress resource |
-| `ingress.host` | `pyn3k8.local` | Ingress hostname |
-| `networkPolicies.enabled` | `true` | Enable NetworkPolicies |
-| `config.logLevel` | `INFO` | Application log level |
-| `secrets.secretKey` | `dev-secret-key` | App secret (override in production) |
 
 ## Uninstall
 
 ```bash
 helm uninstall pyn3k8 -n pyn3k8
 kubectl delete namespace pyn3k8
-```
-
-## Chart Structure
-
-```
-helm/pyn3k8/
-├── Chart.yaml             # Chart metadata
-├── values.yaml            # Dev defaults
-├── values-prod.yaml       # Production overrides
-├── .helmignore            # Files excluded from chart packaging
-└── templates/
-    ├── _helpers.tpl        # Shared template helpers
-    ├── namespace.yaml      # Namespace with pod security labels
-    ├── configmap.yaml      # Application configuration
-    ├── secret.yaml         # Application secrets
-    ├── ui-deployment.yaml  # UI Deployment
-    ├── ui-service.yaml     # UI ClusterIP Service
-    ├── api-deployment.yaml # API Deployment
-    ├── api-service.yaml    # API ClusterIP Service
-    ├── api-hpa.yaml        # API HorizontalPodAutoscaler
-    ├── worker-deployment.yaml  # Worker Deployment
-    ├── worker-service.yaml     # Worker ClusterIP Service
-    ├── ingress.yaml        # Nginx Ingress
-    ├── network-policies.yaml   # Default deny + explicit allows
-    ├── pdb.yaml            # PodDisruptionBudgets
-    ├── NOTES.txt           # Post-install instructions
-    └── README.md           # This file
 ```
