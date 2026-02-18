@@ -21,40 +21,22 @@ Kubernetes Secrets are only base64-encoded, not encrypted. For real production:
 > **Best Practice:** Separate CI and CD into two independent systems.  
 > **Jenkins** handles Continuous Integration (build, test, push images).  
 > **ArgoCD** handles Continuous Deployment (pull changes from Git, deploy to cluster).  
-> This separation follows the **GitOps** model — Git is the single source of truth for both application code and deployment manifests.
+> This separation follows the **GitOps** model 
 
 ---
 
 ### Part 1 — Continuous Integration (Jenkins)
 
 Jenkins is responsible for building, testing, and pushing Docker images to the container registry.
-
-**Pipeline triggers:**
-- On **Pull Request** → run lint, test, build, and scan stages (no push).
-- On **merge to main** → run full pipeline including image push to registry.
-
-```
-┌─────────────────────────────────────────────────────┐
-│                  Jenkins CI Pipeline                │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  1. Lint     → helm lint, flake8/ruff on Python     │
-│  2. Test     → pytest for each service              │
-│  3. Build    → docker build for all 3 services      │
-│  4. Scan     → Trivy scans images for CVEs          │
-│  5. Push     → Tag image with Git SHA,              │
-│               push to container registry            │
-│               (ECR / ACR / Docker Hub)              │
-│                                                     │
-└──────────────────────┬──────────────────────────────┘
-                       │
-                       ▼
-            Container Registry (ECR/ACR)
-              - api-service:abc1234
-              - worker-service:abc1234
-              - frontend:abc1234
-```
-
+                                              
+  1. Lint     → helm lint, flake8/ruff on Python     
+  2. Test     → pytest for each service              
+  3. Build    → docker build for all 3 services      
+  4. Scan     → Trivy scans images for CVEs          
+  5. Push     → Tag image with Git SHA,              
+               push to container registry            
+               (ECR / ACR / Docker Hub)              
+                                                    
 **Key points:**
 - Images are tagged with the **Git commit SHA** for full traceability.
 - Jenkins **only builds and pushes** — it never directly touches the Kubernetes cluster.
@@ -69,34 +51,7 @@ ArgoCD is a **GitOps-based** continuous deployment tool. It continuously watches
 > **Key idea:** ArgoCD follows a **pull-based model** — it pulls changes from Git, unlike Jenkins which pushes. ArgoCD never receives commands from Jenkins directly.
 
 ---
-
-**How it works — 3 simple steps:**
-
-```
-  Step 1                    Step 2                     Step 3
-  ──────                    ──────                     ──────
-
-  Jenkins pushes            Ops team updates           ArgoCD pulls
-  image to registry         manifest YAML              & deploys
-                            in Git repo
-
-  ┌──────────┐          ┌────────────────┐          ┌──────────┐
-  │ Container│          │  Manifest Git  │          │  K8s     │
-  │ Registry │          │  Repository    │          │  Cluster │
-  │          │          │                │          │          │
-  │ image:   │          │ values.yaml:   │  ──────► │ Pods     │
-  │ abc1234  │          │  tag: abc1234  │  ArgoCD  │ running  │
-  │          │          │                │  syncs   │ abc1234  │
-  └──────────┘          └────────────────┘          └──────────┘
-       ▲                        ▲
-       │                        │
-    Jenkins                  Ops team
-    (CI done)             (updates tag)
-```
-
----
-
-**Step-by-step breakdown:**
+**breakdown:**
 
 | Step | Who does it | What happens |
 |------|-------------|--------------|
@@ -109,16 +64,7 @@ ArgoCD is a **GitOps-based** continuous deployment tool. It continuously watches
 
 ---
 
-**Two environments, two sync policies:**
-
-| Environment | Sync Policy | What happens |
-|-------------|-------------|--------------|
-| **Staging** | Auto-sync ON | ArgoCD deploys **immediately** when the manifest repo changes |
-| **Production** | Manual sync | ArgoCD shows the diff and **waits for approval** before deploying |
-
----
-
-**Rollback is simple:**
+**Rollback:**
 
 ```
 Something broke in production?
@@ -132,10 +78,7 @@ No kubectl commands needed. No direct cluster access required.
 
 ---
 
-**ArgoCD also provides:**
-- **Drift detection** — alerts if someone manually changes the cluster outside of Git (e.g., `kubectl edit`)
-- **Health dashboard** — visual UI showing sync status of every application
-- **History** — full record of every deployment with the exact Git commit that triggered it
+
 
 ---
 
