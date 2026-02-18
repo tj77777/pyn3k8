@@ -1,4 +1,4 @@
-# Services Build Container Security Decisions
+# Part A – Secure Container Build
 
 This document summarizes the security decisions used to build and run the Docker images for:
 
