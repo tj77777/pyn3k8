@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pyn3k8 - Task Manager</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
+        h1 { color: #333; }
+        .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        form { display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        button { padding: 8px 20px; background: #2563eb; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; }
+        th { font-weight: 600; color: #666; }
+        .status-completed { color: #16a34a; font-weight: 600; }
+        .status-failed { color: #dc2626; font-weight: 600; }
+        .status-pending { color: #ca8a04; font-weight: 600; }
+        .error { background: #fef2f2; color: #dc2626; padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        .empty { color: #999; text-align: center; padding: 20px; }
+    </style>
+</head>
+<body>
+    <h1>pyn3k8 Task Manager</h1>
+
+    {% if error %}
+    <div class="error">Error connecting to API: {{ error }}</div>
+    {% endif %}
+
+    <div class="card">
+        <h2>Create Task</h2>
+        <form method="POST" action="/create">
+            <input type="text" name="name" placeholder="Task name..." required>
+            <button type="submit">Create</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Tasks</h2>
+        {% if tasks %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Worker</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr>
+                    <td>{{ task.name }}</td>
+                    <td class="status-{{ task.status }}">{{ task.status }}</td>
+                    <td>{{ task.created_at }}</td>
+                    <td>{{ task.worker or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty">No tasks yet. Create one above.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
