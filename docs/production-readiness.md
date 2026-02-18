@@ -78,23 +78,6 @@ No kubectl commands needed. No direct cluster access required.
 
 ---
 
-
-
----
-
-### Why separate Jenkins (CI) and ArgoCD (CD)?
-
-| Benefit | Explanation |
-|---------|-------------|
-| **Separation of concerns** | Jenkins: code → image. ArgoCD: manifest → cluster. Each does one job well |
-| **Security** | Jenkins has **no cluster credentials**. ArgoCD has **no source code access**. Minimal permissions for each |
-| **Auditability** | Every deployment = a Git commit in the manifest repo. Full history of what, when, and who |
-| **Easy rollback** | Just `git revert` in the manifest repo — ArgoCD auto-deploys the previous state |
-| **Multi-cluster** | ArgoCD can deploy to staging + production from the same manifest repo |
-| **No manual kubectl** | Nobody runs `kubectl apply` manually — Git is the only way to change the cluster |
-
----
-
 ## 3. How would you secure the supply chain?
 
 | What | How | File |
