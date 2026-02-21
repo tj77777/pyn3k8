@@ -11,6 +11,7 @@ spec:
   selector:
     app: ui
   ports:
-    - port: {{ .Values.ui.port }}
+    - name: http
+      port: {{ .Values.ui.port }}
       targetPort: {{ .Values.ui.port }}
       protocol: TCP

@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 import requests as http_requests
 from flask import Flask, jsonify, request
+from prometheus_flask_exporter import PrometheusMetrics
 
 
 # Step 1: Define a JSON log formatter for structured logs.
@@ -30,6 +31,7 @@ logger.addHandler(handler)
 logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
 
 
 # Step 2: Read Worker service URL from environment variables.

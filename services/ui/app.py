@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 import requests as http_requests
 from flask import Flask, jsonify, render_template, request
+from prometheus_flask_exporter import PrometheusMetrics
 
 
 
@@ -30,6 +31,7 @@ logger.addHandler(handler)
 logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
 
 # Step 2: Read the API base URL from environment variables.
 API_URL = os.environ.get("API_URL", "http://api-service:8080")

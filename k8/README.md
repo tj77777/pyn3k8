@@ -280,3 +280,68 @@ All three Flask services output JSON formatted logs using Python's `logging` mod
 
 
 ---
+
+## 13. ServiceMonitor for Prometheus (Bonus)
+
+Automatic Prometheus scraping via the Prometheus Operator.
+
+[service-monitors.yaml](service-monitors.yaml)
+
+### What is a ServiceMonitor?
+
+A `ServiceMonitor` is a Custom Resource Definition (CRD) from the Prometheus Operator. It tells Prometheus which Kubernetes Services to scrape, on which port name, at which path, and how often.
+
+Without a ServiceMonitor, Prometheus has no knowledge of our services.
+
+### What does it monitor?
+
+The ServiceMonitor scrapes each service's `/healthz` endpoint every 30 seconds. Prometheus tracks:
+
+| Metric | What it tells you |
+|--------|-------------------|
+| `up` | Whether the service is reachable (1 = healthy, 0 = down) |
+| `scrape_duration_seconds` | How long the health check response takes |
+| `scrape_samples_scraped` | Number of metrics returned per scrape |
+
+This enables alerting (e.g. "API has been down for > 5 minutes") and dashboard graphs in Grafana.
+
+### Prerequisites
+
+1. **kube-prometheus-stack** must be installed (handled by `scripts/setup-monitoring.sh`).
+2. All Service files must have **named ports** (`name: http`). This was added to all 6 Service files (3 raw + 3 Helm templates).
+3. The `release: prometheus` label on each ServiceMonitor must match the `serviceMonitorSelector` configured in kube-prometheus-stack.
+
+### Three ServiceMonitors
+
+| Name | Selector | Port | Path | Interval |
+|------|----------|------|------|----------|
+| `ui-monitor` | `app: ui` | `http` | `/healthz` | 30s |
+| `api-monitor` | `app: api` | `http` | `/healthz` | 30s |
+| `worker-monitor` | `app: worker` | `http` | `/healthz` | 30s |
+
+### Deployment
+
+```bash
+# Raw K8s
+kubectl apply -f k8/service-monitors.yaml
+
+# Helm (enabled via values)
+helm upgrade pyn3k8 helm/pyn3k8/ -n pyn3k8 --set serviceMonitor.enabled=true
+```
+
+### Verification
+
+```bash
+# Check ServiceMonitors exist
+kubectl get servicemonitors -n pyn3k8
+
+# Check Prometheus sees them as targets
+kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090:9090
+# Open http://localhost:9090/targets — look for pyn3k8 services
+```
+
+### Do I need to change Docker images or app code?
+
+**No.** The existing `/healthz` endpoints are sufficient. No new Python packages or Dockerfile changes are needed. If you later want detailed request metrics (request count, latency histograms), you would add `prometheus-flask-instrumentator` to the apps — but that is not required for this bonus task.
+
+---

@@ -222,6 +222,43 @@ Open http://localhost:5000/ in your browser.
 
 ---
 
+## Step 11: Verify ServiceMonitor (Optional — requires kube-prometheus-stack)
+
+If you installed the monitoring stack via `scripts/setup-monitoring.sh`, deploy the ServiceMonitors:
+
+### Raw K8s deployment:
+```bash
+kubectl apply -f k8/service-monitors.yaml
+```
+
+### Helm deployment (already included if `serviceMonitor.enabled: true`):
+```bash
+helm upgrade pyn3k8 helm/pyn3k8/ -n pyn3k8 --set serviceMonitor.enabled=true
+```
+
+### Verify ServiceMonitors are registered:
+```bash
+kubectl get servicemonitors -n pyn3k8
+```
+
+Expected output:
+```
+NAME             AGE
+api-monitor      10s
+ui-monitor       10s
+worker-monitor   10s
+```
+
+### Verify Prometheus is scraping them:
+```bash
+kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090:9090
+```
+Open http://localhost:9090/targets — the three pyn3k8 services should appear as targets with status `UP`.
+
+> **Note:** No Docker image rebuild is needed for ServiceMonitor. It scrapes the existing `/healthz` endpoints already exposed by each service.
+
+---
+
 ## Upgrade
 
 Upgrade with new image tag:
