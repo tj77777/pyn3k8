@@ -87,3 +87,9 @@ config:
 
 secrets:
   secretKey: "dev-secret-key"
+
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  labels:
+    release: prometheus

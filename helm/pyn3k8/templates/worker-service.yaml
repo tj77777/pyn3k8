@@ -11,6 +11,7 @@ spec:
   selector:
     app: worker
   ports:
-    - port: {{ .Values.worker.port }}
+    - name: http
+      port: {{ .Values.worker.port }}
       targetPort: {{ .Values.worker.port }}
       protocol: TCP

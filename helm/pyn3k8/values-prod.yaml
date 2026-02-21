@@ -55,3 +55,7 @@ config:
 
 secrets:
   secretKey: "REPLACE_WITH_PRODUCTION_SECRET"
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
