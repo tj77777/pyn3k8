@@ -21,7 +21,7 @@ Delete any existing cluster and start fresh with Calico for NetworkPolicy enforc
 
 ```bash
 minikube delete
-minikube start --cni=calico --memory=8192 --cpus=4
+minikube start --cni=calico --memory=6144 --cpus=4
 Expected output:
 ```
 * Configuring Calico (Container Networking Interface) ...

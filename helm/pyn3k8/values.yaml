@@ -89,7 +89,7 @@ secrets:
   secretKey: "dev-secret-key"
 
 serviceMonitor:
-  enabled: false
+  enabled: true
   interval: 30s
   labels:
     release: prometheus
