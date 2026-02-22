@@ -35,44 +35,8 @@ kubectl port-forward svc/argocd-server -n argocd 8443:443
 ```
 
 Open https://localhost:8443 — login with `admin` and the password from the install script.
-
 ---
 
-## Application Definitions
-
-### Dev (`argocd-application.yaml`)
-
-| Field | Value |
-|-------|-------|
-| Name | `pyn3k8-dev` |
-| Source | `helm/pyn3k8` with `values.yaml` |
-| Destination | `https://kubernetes.default.svc` / `pyn3k8` |
-| Sync | Automated, prune, self-heal |
-
-### Production (`argocd-application-prod.yaml`)
-
-| Field | Value |
-|-------|-------|
-| Name | `pyn3k8-prod` |
-| Source | `helm/pyn3k8` with `values.yaml` + `values-prod.yaml` |
-| Destination | `https://kubernetes.default.svc` / `pyn3k8` |
-| Sync | Automated, prune, self-heal |
-
----
-
-## GitOps Workflow
-
-### Deploy a change
-
-```bash
-# 1. Edit values or templates
-vim helm/pyn3k8/values.yaml
-
-# 2. Commit and push
-git add -A && git commit -m "bump api replicas to 3" && git push
-
-# 3. ArgoCD detects the change and syncs automatically
-#    (default poll interval: 3 minutes, or configure a webhook for instant sync)
 ```
 
 ### Check sync status
