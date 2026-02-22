@@ -1,19 +1,5 @@
 # ArgoCD GitOps Deployment
 
-
-
-## Prerequisites
-
-| Tool | Purpose |
-|------|---------|
-| Minikube | Local Kubernetes cluster (running) |
-| kubectl | Kubernetes CLI |
-| ArgoCD CLI | (Optional) Command-line management — `brew install argocd` |
-
----
-
-## Quick Start
-
 ### 1. Install ArgoCD
 
 ```bash
@@ -131,15 +117,3 @@ kubectl delete -n argocd -f \
   "https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.3/manifests/install.yaml"
 kubectl delete namespace argocd
 ```
-
----
-
-## Troubleshooting
-
-| Symptom | Fix |
-|---------|-----|
-| App stuck on `Unknown` | Check `argocd app get <name>` — likely a repo URL or auth issue |
-| `ComparisonError` | Helm chart has a syntax error — run `helm lint helm/pyn3k8/` locally |
-| Sync fails with `namespace not found` | `CreateNamespace=true` is set in syncOptions — check ArgoCD RBAC |
-| Resources not pruned | Ensure `prune: true` is in the Application syncPolicy |
-| Slow sync detection | Default poll is 3 min. Configure a [GitHub webhook](https://argo-cd.readthedocs.io/en/stable/operator-manual/webhook/) for instant sync |
