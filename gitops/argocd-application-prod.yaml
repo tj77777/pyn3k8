@@ -1,0 +1,48 @@
+# ArgoCD Application — Production environment
+# Deploys the pyn3k8 Helm chart with production overrides
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pyn3k8-prod
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/tj77777/pyn3k8.git
+    targetRevision: main
+    path: helm/pyn3k8
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-prod.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pyn3k8
+
+  ignoreDifferences:
+    - group: policy
+      kind: PodDisruptionBudget
+      jsonPointers:
+        - /status
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

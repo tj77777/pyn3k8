@@ -345,3 +345,55 @@ kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 909
 **No.** The existing `/healthz` endpoints are sufficient. No new Python packages or Dockerfile changes are needed. If you later want detailed request metrics (request count, latency histograms), you would add `prometheus-flask-instrumentator` to the apps — but that is not required for this bonus task.
 
 ---
+
+## 14. ArgoCD GitOps Deployment (Bonus)
+
+Deploy the pyn3k8 application using ArgoCD for automated GitOps delivery.
+
+[gitops/argocd-application.yaml](../gitops/argocd-application.yaml), [gitops/argocd-application-prod.yaml](../gitops/argocd-application-prod.yaml)
+
+### How it works
+
+ArgoCD watches the Git repository and continuously reconciles the Helm chart in `helm/pyn3k8/` against the live cluster state. When a commit changes values or templates, ArgoCD automatically syncs the new desired state.
+
+### Application CRDs
+
+| Name | Values | Sync Policy |
+|------|--------|-------------|
+| `pyn3k8-dev` | `values.yaml` | Automated + prune + self-heal |
+| `pyn3k8-prod` | `values.yaml` + `values-prod.yaml` | Automated + prune + self-heal |
+
+Both Applications deploy to the `pyn3k8` namespace on the local cluster (`https://kubernetes.default.svc`).
+
+### Setup
+
+```bash
+# 1. Install ArgoCD
+chmod +x scripts/setup-argocd.sh
+./scripts/setup-argocd.sh
+
+# 2. Update repoURL in both Application files to your actual Git remote
+
+# 3. Apply the Application CRDs
+kubectl apply -f gitops/argocd-application.yaml
+kubectl apply -f gitops/argocd-application-prod.yaml
+```
+
+### Verification
+
+```bash
+# Check Applications are synced
+kubectl get applications -n argocd
+
+# ArgoCD UI
+kubectl port-forward svc/argocd-server -n argocd 8443:443
+# Open https://localhost:8443
+```
+
+### Why no NetworkPolicy changes?
+
+ArgoCD manages resources through the Kubernetes API server, not by connecting directly to pods. The API server is outside the `pyn3k8` namespace and is not subject to our `default-deny-all` NetworkPolicy. No ingress rules are needed.
+
+See [gitops/README.md](../gitops/README.md) for the full setup guide, workflow, rollback instructions, and Minikube-specific notes.
+
+---
