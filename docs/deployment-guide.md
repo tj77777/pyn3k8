@@ -17,13 +17,11 @@ Ensure the following tools are installed:
 
 ## Step 1: Start Minikube with Calico CNI
 
-Delete any existing cluster and start fresh with Calico for NetworkPolicy enforcement:
+Delete any existing cluster and start fresh with Calico for NetworkPolicy enforcement.
 
 ```bash
 minikube delete
-minikube start --cni=calico --memory=4096 --cpus=2
-```
-
+minikube start --cni=calico --memory=8192 --cpus=4
 Expected output:
 ```
 * Configuring Calico (Container Networking Interface) ...
@@ -256,6 +254,58 @@ kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 909
 Open http://localhost:9090/targets — the three pyn3k8 services should appear as targets with status `UP`.
 
 > **Note:** No Docker image rebuild is needed for ServiceMonitor. It scrapes the existing `/healthz` endpoints already exposed by each service.
+
+---
+
+## Step 12: Set Up ArgoCD (Bonus — GitOps)
+
+Install ArgoCD and configure it to manage the pyn3k8 deployment via GitOps.
+
+### Install ArgoCD:
+
+```bash
+chmod +x scripts/setup-argocd.sh
+./scripts/setup-argocd.sh
+```
+
+The script installs ArgoCD v2.14.3 from upstream manifests and prints the admin password.
+
+### Update the Git repo URL:
+
+Edit both Application files in `gitops/` and replace the placeholder `repoURL` with your actual GitHub remote.
+
+### Apply Application CRDs:
+
+```bash
+kubectl apply -f gitops/argocd-application.yaml
+```
+
+For production:
+```bash
+kubectl apply -f gitops/argocd-application-prod.yaml
+```
+
+### Access the ArgoCD UI:
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8443:443
+```
+
+Open https://localhost:8443 and log in with `admin` and the password from the install output.
+
+### Verify sync status:
+
+```bash
+kubectl get applications -n argocd
+```
+
+Expected output:
+```
+NAME          SYNC STATUS   HEALTH STATUS
+pyn3k8-dev    Synced        Healthy
+```
+
+> **Note:** After ArgoCD is managing the deployment, make changes by committing to Git rather than running `helm upgrade` manually. ArgoCD will auto-sync within ~3 minutes. See [gitops/README.md](../gitops/README.md) for the full workflow.
 
 ---
 

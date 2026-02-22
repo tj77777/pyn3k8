@@ -14,8 +14,9 @@ pyn3k8/
 │   └── worker/        # Background worker service (port 9090)
 ├── k8/                # Raw Kubernetes manifests
 ├── helm/pyn3k8/       # Helm chart for templated deploys
+├── gitops/            # ArgoCD Application CRDs for GitOps
 ├── docs/              # Guides & production discussion
-└── scripts/           # Utility scripts (monitoring setup)
+└── scripts/           # Utility scripts (monitoring, ArgoCD setup)
 ```
 
 ---
@@ -37,5 +38,8 @@ Supplementary documentation:
 - [Deployment Guide](docs/deployment-guide.md) — Step-by-step instructions for setting up Minikube, building images, and deploying the app.
 - [Production Readiness](docs/production-readiness.md) — Part D discussion covering secrets management, CI/CD, supply chain security, observability, and scaling.
 
+### [`gitops/`](gitops/README.md)
+**Bonus 5 — ArgoCD GitOps.** ArgoCD Application CRDs that point at the Helm chart for automated, self-healing deployments. Push to Git → ArgoCD syncs to the cluster.
+
 ### [`scripts/`](scripts/)
-Helper scripts such as `setup-monitoring.sh` for bootstrapping Prometheus/Grafana monitoring.
+Helper scripts such as `setup-monitoring.sh` for bootstrapping Prometheus/Grafana and `setup-argocd.sh` for installing ArgoCD.
